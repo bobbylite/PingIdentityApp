@@ -1,6 +1,8 @@
+using System.Net.Mime;
+using System.Text.Json;
 using Microsoft.Extensions.Options;
 using PingIdentityApp.Configuration;
-using PingIdentityApp.Services.Token;
+using PingIdentityApp.Models;
 
 namespace PingIdentityApp.Services.PingOne;
 
@@ -9,7 +11,6 @@ public class PingOneManagementService : IPingOneManagementService
     private readonly ILogger<PingOneManagementService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IOptionsMonitor<PingOneAuthenticationOptions> _optionsMonitor;
-    private readonly ITokenService _tokenService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PingOneManagementService"/> class.
@@ -22,31 +23,64 @@ public class PingOneManagementService : IPingOneManagementService
     public PingOneManagementService(
         ILogger<PingOneManagementService> logger,
         IHttpClientFactory httpClientFactory,
-        IOptionsMonitor<PingOneAuthenticationOptions> optionsMonitor,
-        ITokenService tokenService)
+        IOptionsMonitor<PingOneAuthenticationOptions> optionsMonitor)
     {
         ArgumentNullException.ThrowIfNull(logger);
         ArgumentNullException.ThrowIfNull(httpClientFactory);
         ArgumentNullException.ThrowIfNull(optionsMonitor);
-        ArgumentNullException.ThrowIfNull(tokenService);
 
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _optionsMonitor = optionsMonitor;
-        _tokenService = tokenService;
     }
 
     /// <inheritdoc />
-    public async Task getUserByIdAsync(string userId)
+    public async Task<IEnumerable<Group>> GetGroupsAsync()
     {
-        ArgumentNullException.ThrowIfNull(userId);
+        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientNames.PingOneApi);
+        var response = await httpClient.GetAsync($"environments/{_optionsMonitor.CurrentValue.EnvironmentId}/groups");
 
-        await _tokenService.AuthenticateAsync();
+        response.EnsureSuccessStatusCode();
+
+        var deserializedGroupsResponse = await response.Content.ReadFromJsonAsync<PingOneResponse>();
+        if (deserializedGroupsResponse is null)
+        {
+            _logger.LogError("Failed to deserialize groups response");
+            return Enumerable.Empty<Group>();
+        }
+
+        return deserializedGroupsResponse.EmbeddedData?.Groups ?? Enumerable.Empty<Group>();
+    }
+
+    /// <inheritdoc />
+    public async Task ProvisionGroupMembershipAsync(string userId, string groupId)
+    {
+        ArgumentNullException.ThrowIfNullOrEmpty(userId);
+        ArgumentNullException.ThrowIfNullOrEmpty(groupId);
+
+        var data = new
+        {
+            id = groupId
+        };
+
+        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientNames.PingOneApi);
+
+        var json = JsonSerializer.Serialize(data);
+        var content = new StringContent(json, System.Text.Encoding.UTF8, MediaTypeNames.Application.Json);
+
+        var url = $"environments/{_optionsMonitor.CurrentValue.EnvironmentId}/users/{userId}/memberOfGroups";
+        var response = await httpClient.PostAsync(url, content);
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("PingOne returned {StatusCode}: {Response}", response.StatusCode, responseContent);
+            throw new HttpRequestException($"PingOne returned {response.StatusCode}: {responseContent}");
+        }
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        _tokenService.Dispose();
     }
 }

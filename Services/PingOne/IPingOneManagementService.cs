@@ -18,5 +18,5 @@ public interface IPingOneManagementService : IDisposable
     /// <param name="userId"></param>
     /// <param name="groupId"></param>
     /// <returns></returns>
-    Task<IEnumerable<Group>> ProvisionGroupMembershipAsync(string userId, string groupId);
+    Task ProvisionGroupMembershipAsync(string userId, string groupId);
 }
