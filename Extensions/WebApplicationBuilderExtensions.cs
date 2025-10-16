@@ -62,7 +62,7 @@ public static class WebApplicationBuilderExtensions
         {
             var apiOptionsSnapshot = provider.GetRequiredService<IOptionsMonitor<PingOneAuthenticationOptions>>();
             var apiOptions = apiOptionsSnapshot.CurrentValue;
-            client.BaseAddress = new Uri($"https+http://{apiOptions.BaseUrl}"); 
+            client.BaseAddress = new Uri($"{apiOptions.BaseUrl}"); 
         })
         .AddHttpMessageHandler<AuthenticationHandler>();
         

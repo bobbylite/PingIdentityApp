@@ -73,6 +73,15 @@ public class PingOneAuthenticationOptions
     /// This value is used to identify the issuer for the PingOne application.
     /// </remarks>
     public string Issuer { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the environment ID for the PingOne application.
+    /// </summary>
+    /// <value>The environment ID for the PingOne application.</value>
+    /// <remarks>
+    /// This value is used to identify the environment ID for the PingOne application.
+    /// </remarks>
+    public string EnvironmentId { get; set; } = string.Empty;
 }
 
 

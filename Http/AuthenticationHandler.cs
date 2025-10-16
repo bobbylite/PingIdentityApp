@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Mime;
 using PingIdentityApp.Services.Token;
 
 namespace PingIdentityApp.Http;
@@ -73,6 +74,8 @@ public class AuthenticationHandler : DelegatingHandler
         
         _logger.LogDebug("Setting the 'Authorization' header before performing the request");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _authenticateService.Token);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json));
+        request.Headers.Host = "api.pingone.com";
 
         _logger.LogDebug("Continuing the request");
         HttpResponseMessage response = await base.SendAsync(request, cancellationToken);

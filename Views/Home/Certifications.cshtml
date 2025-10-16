@@ -8,10 +8,25 @@
 
 @{
     var user = HttpContextAccessor.HttpContext?.User;
-    var groups = user?.Claims.Where(c => c.Type == "groups").Select(c => c.Value).ToList();
-    var isBasicUser = groups != null && groups.Contains("Basic");
-    var isManagementUser = groups != null && groups.Contains("Managers");
+    /*HERE chatgpt */ var groups = user?.Claims.Where(c => c.Type == "groups").Select(c => c.Value).ToList() ?? new List<string>();
+
+    var requiredGroups = new Dictionary<string, string>
+    {
+        { "Basic", "Birthright access." },
+        { "Manager", "Advanced certifications and management resources." },
+        { "Employee", "Access to internal employee tools and campaigns." }
+    };
+
     var subject = user?.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+
+    var pingOneGroups = await PingOneManagementService.GetGroupsAsync();
+
+    var missingGroups = pingOneGroups
+        .Where(pg => !groups.Contains(pg.Name))
+        .Where(pg => requiredGroups.ContainsKey(pg.Name))
+        .ToList();
+
+    var hasAllGroups = missingGroups.Count == 0;
 }
 
 <!DOCTYPE html>
@@ -19,43 +34,13 @@
 <head>
     <meta charset="utf-8" />
     <title>GetChatty Certifications Campaign</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 
 @if (user?.Identity?.IsAuthenticated is true)
 {
-    @if (isBasicUser && !isManagementUser)
-    {
-        <body class="bg-body-tertiary">
-            <div class="container py-5 text-center">
-                <div class="card shadow-sm border-0 mx-auto" style="max-width: 600px;">
-                    <div class="card-header bg-danger text-white">
-                        <h3 class="mb-0">Access Restricted</h3>
-                    </div>
-                    <div class="card-body">
-                        <p class="text-muted mb-4">You don’t currently have sufficient access for this resource. Please contact support or join the programs below.</p>
-
-                        <table class="table table-hover align-middle">
-                            <thead class="table-danger">
-                                <tr>
-                                    <th>Group</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Manager</td>
-                                    <td>Advanced certifications and management resources.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </body>
-        return;
-    }
-
-    @if (isBasicUser && isManagementUser)
+    @if (hasAllGroups)
     {
         <body class="bg-body-tertiary">
             <div class="container py-5">
@@ -92,36 +77,51 @@
         </body>
         return;
     }
-
     else
     {
         <body class="bg-body-tertiary">
             <div class="container py-5 text-center">
-                <div class="card shadow-sm border-0 mx-auto" style="max-width: 600px;">
+                <div class="card shadow-sm border-0 mx-auto" style="max-width: 700px;">
                     <div class="card-header bg-danger text-white">
                         <h3 class="mb-0">Access Restricted</h3>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted mb-4">You don’t currently have sufficient access for this resource. Please contact support or join the programs below.</p>
+                        <p class="text-muted mb-4">
+                            You don’t currently have sufficient access for this resource.
+                            Please contact support or request access to the groups below.
+                        </p>
 
                         <table class="table table-hover align-middle">
                             <thead class="table-danger">
                                 <tr>
                                     <th>Group</th>
+                                    <th>Group ID</th>
                                     <th>Description</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>Basic</td>
-                                    <td>Birthright access.</td>
-                                </tr>
-                                <tr>
-                                    <td>Manager</td>
-                                    <td>Advanced certifications and management resources.</td>
-                                </tr>
+                                @foreach (var missing in missingGroups)
+                                {
+                                    <tr>
+                                        <td>@missing.Name</td>
+                                        <td>@missing.Id</td>
+                                        <td>@missing.Description</td>
+                                        <td>
+                                            <form method="post" action="/account/request-access" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="groupId" value="@missing.Id" />
+                                                <button type="submit" class="btn btn-outline-success btn-sm">
+                                                    <i class="bi bi-send-fill me-1"></i> Request
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
                             </tbody>
                         </table>
+
+                        <p class="mt-3 text-secondary">Your current groups: <strong>@string.Join(", ", groups)</strong></p>
                     </div>
                 </div>
             </div>
