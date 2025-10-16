@@ -1,0 +1,134 @@
+﻿
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Authentication.OpenIdConnect
+
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var user = HttpContextAccessor.HttpContext?.User;
+    var groups = user?.Claims.Where(c => c.Type == "groups").Select(c => c.Value).ToList();
+    var isBasicUser = groups != null && groups.Contains("Basic");
+    var isDeveloperUser = groups != null && groups.Contains("Developer");
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Privacy page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+@if (user?.Identity?.IsAuthenticated is true)
+{
+    @if (isBasicUser)
+    {
+        <body class="bg-light">
+            <div class="container py-5">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h2>Privacy Policy</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>Welcome, <strong>@user.Identity.Name</strong>!</p>
+                        <h5>You are a basic user.</h5>
+                    </div>
+                    <div class="card-footer text-end">
+                        <form method="get" action="/account/login">
+                            <button type="submit" class="btn btn-outline-primary">Login</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </body>
+
+        return;
+    }
+    @if (isDeveloperUser)
+    {
+        <body class="bg-light">
+            <div class="container py-5">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h2>Privacy Policy</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>Welcome, <strong>@user.Identity.Name</strong>!</p>
+                        <h5>You are a basic user.</h5>
+                    </div>
+                    <div class="card-footer text-end">
+                        <form method="get" action="/account/login">
+                            <button type="submit" class="btn btn-outline-primary">Login</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </body>
+
+        return;
+    }
+    else
+    {
+        <body class="bg-light">
+            <div class="container py-5">
+                <div class="card shadow">
+                    <div class="card-header bg-danger text-white">
+                        <h3 class="mb-1">Groups Access</h3>
+                        <p class="mb-0">Request access to your assigned groups</p>
+                    </div>
+                    <div class="card-body">
+                        @if (TempData["Message"] != null)
+                        {
+                            <div class="alert alert-success">@TempData["Message"]</div>
+                        }
+
+                        <table class="table table-hover align-middle">
+                            <thead class="table-danger">
+                                <tr>
+                                    <th scope="col">Group Name</th>
+                                    <th scope="col">Description</th>
+                                    <th scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Employees</td>
+                                    <td>Access to internal employee resources</td>
+                                    <td>
+                                        <form method="post" action="/Groups/RequestAccess" class="d-inline">
+                                            <input type="hidden" name="groupName" value="Employees" />
+                                            <button type="submit" class="btn btn-danger btn-sm">Request</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <!-- Add more groups here if needed -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </body>
+    }
+}
+else
+{
+    <body class="bg-light">
+        <div class="container py-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2>Privacy Policy</h2>
+                </div>
+                <div class="card-body">
+                    <h5>Please log in to view your access.</h5>
+                </div>
+                <div class="card-footer text-end">
+                    <form method="get" action="/account/login">
+                        <button type="submit" class="btn btn-outline-primary">Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+}
+</html>
