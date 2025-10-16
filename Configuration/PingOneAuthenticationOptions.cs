@@ -57,6 +57,15 @@ public class PingOneAuthenticationOptions
     public string BaseUrl { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets the token URL for the PingOne application.
+    /// </summary>
+    /// <value>The token URL for the PingOne application.</value>
+    /// <remarks>
+    /// This value is used to identify the token URL for the PingOne application.
+    /// </remarks>
+    public string TokenEndpoint { get; set; } = string.Empty;
+
+    /// <summary>
     /// Gets or sets the issuer for the PingOne application.
     /// </summary>
     /// <value>The issuer for the PingOne application.</value>

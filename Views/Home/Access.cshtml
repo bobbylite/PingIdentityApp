@@ -2,14 +2,17 @@
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authentication.Cookies
 @using Microsoft.AspNetCore.Authentication.OpenIdConnect
+@using PingIdentityApp.Services.PingOne
 
 @inject IHttpContextAccessor HttpContextAccessor
+@inject IPingOneManagementService PingOneManagementService
 
 @{
     var user = HttpContextAccessor.HttpContext?.User;
     var groups = user?.Claims.Where(c => c.Type == "groups").Select(c => c.Value).ToList();
     var isBasicUser = groups != null && groups.Contains("Basic");
     var isDeveloperUser = groups != null && groups.Contains("Developer");
+    var subject = user?.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
 }
 
 <!DOCTYPE html>
@@ -113,6 +116,8 @@
 }
 else
 {
+    await PingOneManagementService.getUserByIdAsync(subject ?? string.Empty);
+    
     <body class="bg-light">
         <div class="container py-5">
             <div class="card shadow-sm">
