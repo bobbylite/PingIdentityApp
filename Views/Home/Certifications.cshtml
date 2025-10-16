@@ -1,0 +1,144 @@
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Authentication.OpenIdConnect
+@using PingIdentityApp.Services.PingOne
+
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IPingOneManagementService PingOneManagementService
+
+@{
+    var user = HttpContextAccessor.HttpContext?.User;
+    var groups = user?.Claims.Where(c => c.Type == "groups").Select(c => c.Value).ToList();
+    var isBasicUser = groups != null && groups.Contains("Basic");
+    var isManagementUser = groups != null && groups.Contains("Managers");
+    var subject = user?.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>GetChatty Certifications Campaign</title>
+</head>
+
+@if (user?.Identity?.IsAuthenticated is true)
+{
+    @if (isBasicUser && !isManagementUser)
+    {
+        <body class="bg-body-tertiary">
+            <div class="container py-5 text-center">
+                <div class="card shadow-sm border-0 mx-auto" style="max-width: 600px;">
+                    <div class="card-header bg-danger text-white">
+                        <h3 class="mb-0">Access Restricted</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-4">You don’t currently have sufficient access for this resource. Please contact support or join the programs below.</p>
+
+                        <table class="table table-hover align-middle">
+                            <thead class="table-danger">
+                                <tr>
+                                    <th>Group</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Manager</td>
+                                    <td>Advanced certifications and management resources.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </body>
+        return;
+    }
+
+    @if (isBasicUser && isManagementUser)
+    {
+        <body class="bg-body-tertiary">
+            <div class="container py-5">
+                <div class="text-center mb-5">
+                    <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" class="mb-3" style="width: 120px;">
+                    <h1 class="fw-bold text-primary">Certifications Dashboard</h1>
+                    <p class="text-secondary">Welcome, <strong>@user.Identity.Name</strong> — your certification campaigns await!</p>
+                </div>
+
+                <div class="row g-4 justify-content-center">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-award-fill text-primary fs-1 mb-3"></i>
+                                <h5 class="fw-bold">New Certification Campaigns</h5>
+                                <p class="text-secondary">You’ve got new access requests to certify.</p>
+                                <button class="btn btn-outline-primary rounded-pill px-4 mt-2">Certifications</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-clock-history text-success fs-1 mb-3"></i>
+                                <h5 class="fw-bold">History</h5>
+                                <p class="text-secondary">A recent history of your past certifications.</p>
+                                <button class="btn btn-outline-success rounded-pill px-4 mt-2">History</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+        return;
+    }
+
+    else
+    {
+        <body class="bg-body-tertiary">
+            <div class="container py-5 text-center">
+                <div class="card shadow-sm border-0 mx-auto" style="max-width: 600px;">
+                    <div class="card-header bg-danger text-white">
+                        <h3 class="mb-0">Access Restricted</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-4">You don’t currently have sufficient access for this resource. Please contact support or join the programs below.</p>
+
+                        <table class="table table-hover align-middle">
+                            <thead class="table-danger">
+                                <tr>
+                                    <th>Group</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Basic</td>
+                                    <td>Birthright access.</td>
+                                </tr>
+                                <tr>
+                                    <td>Manager</td>
+                                    <td>Advanced certifications and management resources.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </body>
+    }
+}
+else
+{
+    <body class="bg-body-tertiary align-items-center text-center">
+        <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" class="mb-4" style="width: 140px;">
+        <h2 class="fw-bold text-dark mb-3">GetChatty Access Certifications</h2>
+        <p class="lead text-secondary mb-4">Log in to view and manage your access certifications.</p>
+        <form method="get" action="/account/login">
+            <button type="submit" class="btn btn-danger btn-lg rounded-pill px-5 py-3">
+                <i class="bi bi-shield-lock-fill me-2"></i> Sign In
+            </button>
+        </form>
+    </body>
+}
+</html>

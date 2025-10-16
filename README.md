@@ -4,6 +4,16 @@ A demo ASP.NET Core 8 web application showcasing **Ping Identity OpenID Connect 
 
 ---
 
+## Notes 
+3 major comonents will be used to demonstrate IAM with PingOne:
+
+* **Self Service Portal**: Login with OIDC (non-PKCE flow) SSO. This portal will demonstrate access requests.
+* **Kiosk App**: Login with OIDC (PKCE flow) SSO. This portal will demonstrate that certifications have been completed and proper access has been provisioned.
+* **Onboarding Portal**: Setup account with backend making requests to PingOne management API through OAuth client credentials flow.
+
+
+
+
 ## Features
 
 * **OIDC Authentication**: Login using Ping Identity with Authorization Code Flow.

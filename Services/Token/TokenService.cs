@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using PingIdentityApp.Configuration;
@@ -80,25 +79,23 @@ public class TokenService : ITokenService
     public async Task AuthenticateAsync()
     {
         _logger.LogInformation("Authenticating with PingOne");
-        var httpClient = _httpClientFactory.CreateClient(HttpClientNames.PingOneApi);
-
-        var data = new
+        var httpClient = _httpClientFactory.CreateClient(HttpClientNames.PingOneManagementApi);
+        httpClient.DefaultRequestHeaders.Host = "auth.pingone.com";
+        
+        var data = new[]
         {
-            client_id = _optionsMonitor.CurrentValue.ClientId,
-            client_secret = _optionsMonitor.CurrentValue.ClientSecret,
-            audience = _optionsMonitor.CurrentValue.Issuer,
-            grant_type = "client_credentials"
+            new KeyValuePair<string, string>("client_id", _optionsMonitor.CurrentValue.ClientId),
+            new KeyValuePair<string, string>("client_secret", _optionsMonitor.CurrentValue.ClientSecret),
+            new KeyValuePair<string, string>("grant_type", "client_credentials")
         };
 
-        var json = JsonSerializer.Serialize(data);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await httpClient.PostAsync($"{_optionsMonitor.CurrentValue.BaseUrl}/oauth/token", content);
+        var content = new FormUrlEncodedContent(data);
+        var response = await httpClient.PostAsync($"{_optionsMonitor.CurrentValue.TokenEndpoint}", content);
 
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Failed to get token from PingOne: {StatusCode}", response.StatusCode);
-            return;     
+            return;
         }
 
         var responseContent = await response.Content.ReadAsStringAsync();

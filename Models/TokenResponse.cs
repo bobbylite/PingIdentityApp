@@ -42,5 +42,5 @@ public class TokenResponse
     /// Gets or sets the scope.
     /// </summary>
     [JsonPropertyName("scope")]
-    public required string Scope { get; set; }
+    public string? Scope { get; set; }
 }
