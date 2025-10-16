@@ -1,10 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authentication.Cookies
 @using Microsoft.AspNetCore.Authentication.OpenIdConnect
+@using PingIdentityApp.Services.Certification
 @using PingIdentityApp.Services.PingOne
 
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IPingOneManagementService PingOneManagementService
+@inject ICertificationService CertificationService
 
 @{
     var user = HttpContextAccessor.HttpContext?.User;
@@ -110,13 +112,26 @@
                                         <td>@group.Id</td>
                                         <td>@group.Description</td>
                                         <td class="text-center">
-                                            <form id="@group.Id" method="post" action="/account/request-access" class="d-inline" data-tour-id="@group.Id">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="groupId" value="@group.Id" />
-                                                <button type="submit" class="btn btn-outline-success btn-sm rounded-pill">
-                                                    <i class="bi bi-person-plus-fill me-1"></i> Request
-                                                </button>
-                                            </form>
+                                            @if(CertificationService.AccessRequests.Any(r => r.GroupId == group.Id))
+                                            {
+                                                <form id="@group.Id" method="post" action="/account/request-access" class="d-inline" data-tour-id="@group.Id">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="groupId" value="@group.Id" />
+                                                    <button type="submit" class="btn btn-outline-success btn-sm rounded-pill" disabled>
+                                                        <i class="bi bi-person-plus-fill me-1"></i> Request
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form id="@group.Id" method="post" action="/account/request-access" class="d-inline" data-tour-id="@group.Id">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="groupId" value="@group.Id" />
+                                                    <button type="submit" class="btn btn-outline-success btn-sm rounded-pill">
+                                                        <i class="bi bi-person-plus-fill me-1"></i> Request
+                                                    </button>
+                                                </form>
+                                            }
                                         </td>
                                     </tr>
                                 }

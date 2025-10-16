@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PingIdentityApp.Services.Certification;
 using PingIdentityApp.Services.PingOne;
 
 namespace PingIdentityApp.Controllers;
@@ -12,22 +13,22 @@ namespace PingIdentityApp.Controllers;
 public class AccountController : Controller
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IPingOneManagementService _pingOneService;
+    private readonly ICertificationService _certificationService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AccountController"/> class.
     /// </summary>
     /// <param name="httpContextAccessor"></param>
-    /// <param name="pingOneService"></param>
+    /// <param name="certificationService"></param>
     public AccountController(
         IHttpContextAccessor httpContextAccessor,
-        IPingOneManagementService pingOneService)
+        ICertificationService certificationService)
     {
         ArgumentNullException.ThrowIfNull(httpContextAccessor);
-        ArgumentNullException.ThrowIfNull(pingOneService);
+        ArgumentNullException.ThrowIfNull(certificationService);
 
         _httpContextAccessor = httpContextAccessor;
-        _pingOneService = pingOneService;
+        _certificationService = certificationService;
     }
 
     [HttpGet("login")]
@@ -68,7 +69,7 @@ public class AccountController : Controller
 
         try
         {
-            await _pingOneService.ProvisionGroupMembershipAsync(userId, groupId);
+            await _certificationService.CreateAccessRequestAsync(userId, groupId);
             TempData["Message"] = "Access request submitted successfully!";
         }
         catch (Exception ex)
@@ -76,6 +77,7 @@ public class AccountController : Controller
             TempData["Message"] = $"Error requesting access: {ex.Message}";
         }
 
-        return Redirect(Request.Headers["Referer"].ToString());
+        //return Redirect(Request.Headers["Referer"].ToString());
+        return RedirectToAction("Access", "Home");
     }
 }
