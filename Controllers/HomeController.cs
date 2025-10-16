@@ -19,9 +19,9 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult EmployeesOnly()
+    public IActionResult Certifications()
     {
-        ViewData["Message"] = "Your application emplooyees only page.";
+        ViewData["Message"] = "Your certification campaigns page.";
         return View();
     }
 
