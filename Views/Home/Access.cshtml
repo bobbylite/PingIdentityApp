@@ -9,14 +9,26 @@
 @{
     var user = HttpContextAccessor.HttpContext?.User;
     var groups = user?.Claims.Where(c => c.Type == "groups").Select(c => c.Value).ToList() ?? new List<string>();
+
     var allGroups = new List<(string Name, string Description)>
     {
         ("Basic", "Access to essential features for standard users"),
         ("Manager", "Access to management resources and certifications"),
-        ("Admin", "Full administrative control and elevated privileges")
+        ("Admin", "Full administrative control and elevated privileges"),
+        ("Employee", "Access to employee tools and resources"),
+        ("Vendor", "Access to vendor tools and resources"),
     };
-    var missingGroups = allGroups.Where(g => !groups.Contains(g.Name)).ToList();
+
     var subject = user?.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+
+    var pingOneGroups = await PingOneManagementService.GetGroupsAsync();
+
+    var missingGroups = pingOneGroups
+        .Where(pg => !groups.Contains(pg.Name))
+        .Where(pg => allGroups.Any(ag => ag.Name == pg.Name))
+        .ToList();
+
+    var hasAllGroups = missingGroups.Count == 0;
 }
 
 <!DOCTYPE html>
@@ -79,6 +91,7 @@
                             <thead class="table-primary">
                                 <tr>
                                     <th scope="col">Group Name</th>
+                                    <th scope="col">ID</th>
                                     <th scope="col">Description</th>
                                     <th scope="col" class="text-center">Action</th>
                                 </tr>
@@ -88,10 +101,12 @@
                                 {
                                     <tr>
                                         <td>@group.Name</td>
+                                        <td>@group.Id</td>
                                         <td>@group.Description</td>
                                         <td class="text-center">
-                                            <form method="post" action="/Groups/RequestAccess" class="d-inline">
-                                                <input type="hidden" name="groupName" value="@group.Name" />
+                                            <form method="post" action="/account/request-access" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="groupId" value="@group.Id" />
                                                 <button type="submit" class="btn btn-outline-success btn-sm rounded-pill">
                                                     <i class="bi bi-person-plus-fill me-1"></i> Request
                                                 </button>
@@ -112,9 +127,7 @@
     </body>
 }
 else
-{
-    await PingOneManagementService.getUserByIdAsync(subject ?? string.Empty);
-    
+{    
     <body class="bg-body-tertiary align-items-center text-center">
         <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" class="mb-4" style="width: 140px;">
         <h2 class="fw-bold text-dark mb-3">GetChatty Access Control</h2>

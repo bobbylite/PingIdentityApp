@@ -8,7 +8,7 @@
 
 @{
     var user = HttpContextAccessor.HttpContext?.User;
-    /*HERE chatgpt */ var groups = user?.Claims.Where(c => c.Type == "groups").Select(c => c.Value).ToList() ?? new List<string>();
+    var groups = user?.Claims.Where(c => c.Type == "groups").Select(c => c.Value).ToList() ?? new List<string>();
 
     var requiredGroups = new Dictionary<string, string>
     {
