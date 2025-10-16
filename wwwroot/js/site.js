@@ -9,7 +9,7 @@
         console.log(`Starting tour for selector: ${targetSelector}`);
         const element = document.querySelector(targetSelector);
         console.log("Element found:", element);
-        const theElement = document.getElementById('8d7987c5-64a6-487b-a336-95d38688708d');
+        const targetElement = document.getElementById(groupId);
 
         const tour = new Shepherd.Tour({
                 useModalOverlay: true,
@@ -32,8 +32,8 @@
                     `,                
                 text: 'Click here to request access to this group.',
                 attachTo: {
-                    element: theElement,
-                    on: 'bottom'
+                    element: targetElement,
+                    on: 'left'
                 },
                 buttons: [
                     {

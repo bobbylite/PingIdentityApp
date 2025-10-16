@@ -33,6 +33,7 @@ body {
 
 .shepherd-getchatty .shepherd-arrow:before {
   background: #d62828 !important;
+  left: -1px;
 }
 
 .shepherd-getchatty .shepherd-button {
