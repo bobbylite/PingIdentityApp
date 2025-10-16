@@ -69,9 +69,9 @@
                     <div class="col-md-6 col-lg-4">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body text-center">
-                                <i class="bi bi-code-slash text-primary fs-1 mb-3"></i>
-                                <h5 class="fw-bold">New Certification Requests</h5>
-                                <p class="text-secondary">You’ve mastered GetChatty’s developer tools and APIs.</p>
+                                <i class="bi bi-award-fill text-primary fs-1 mb-3"></i>
+                                <h5 class="fw-bold">New Certification Campaigns</h5>
+                                <p class="text-secondary">You’ve got new access requests to certify.</p>
                                 <button class="btn btn-outline-primary rounded-pill px-4 mt-2">Certifications</button>
                             </div>
                         </div>
@@ -80,21 +80,13 @@
                     <div class="col-md-6 col-lg-4">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body text-center">
-                                <i class="bi bi-award-fill text-success fs-1 mb-3"></i>
-                                <h5 class="fw-bold">Certifications</h5>
-                                <p class="text-secondary">Your expertise earns you recognition in the GetChatty community.</p>
-                                <button class="btn btn-outline-success rounded-pill px-4 mt-2">Certification History</button>
+                                <i class="bi bi-clock-history text-success fs-1 mb-3"></i>
+                                <h5 class="fw-bold">History</h5>
+                                <p class="text-secondary">A recent history of your past certifications.</p>
+                                <button class="btn btn-outline-success rounded-pill px-4 mt-2">History</button>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="text-center mt-5">
-                    <form method="get" action="/account/logout">
-                        <button type="submit" class="btn btn-outline-danger rounded-pill px-4">
-                            <i class="bi bi-box-arrow-right me-1"></i> Logout
-                        </button>
-                    </form>
                 </div>
             </div>
         </body>
@@ -138,22 +130,15 @@
 }
 else
 {
-    <body class="bg-light">
-        <div class="container py-5">
-            <div class="card shadow-sm">
-                <div class="card-header bg-danger text-white">
-                    <h2>Access Restricted</h2>
-                </div>
-                <div class="card-body">
-                    <h5>Please log in to access certification resources.</h5>
-                </div>
-                <div class="card-footer text-end">
-                    <form method="get" action="/account/login">
-                        <button type="submit" class="btn btn-outline-primary">Login</button>
-                    </form>
-                </div>
-            </div>
-        </div>
+    <body class="bg-body-tertiary align-items-center text-center">
+        <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" class="mb-4" style="width: 140px;">
+        <h2 class="fw-bold text-dark mb-3">GetChatty Access Certifications</h2>
+        <p class="lead text-secondary mb-4">Log in to view and manage your access certifications.</p>
+        <form method="get" action="/account/login">
+            <button type="submit" class="btn btn-danger btn-lg rounded-pill px-5 py-3">
+                <i class="bi bi-shield-lock-fill me-2"></i> Sign In
+            </button>
+        </form>
     </body>
 }
 </html>

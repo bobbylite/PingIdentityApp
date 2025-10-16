@@ -12,8 +12,7 @@
     var allGroups = new List<(string Name, string Description)>
     {
         ("Basic", "Access to essential features for standard users"),
-        ("Developer", "Access to developer APIs and advanced configurations"),
-        ("Employee", "Access to internal employee tools and dashboards"),
+        ("Manager", "Access to management resources and certifications"),
         ("Admin", "Full administrative control and elevated privileges")
     };
     var missingGroups = allGroups.Where(g => !groups.Contains(g.Name)).ToList();
@@ -116,9 +115,9 @@ else
 {
     await PingOneManagementService.getUserByIdAsync(subject ?? string.Empty);
     
-    <body class="bg-body-tertiary d-flex flex-column justify-content-center align-items-center text-center py-5">
+    <body class="bg-body-tertiary align-items-center text-center">
         <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" class="mb-4" style="width: 140px;">
-        <h2 class="fw-bold text-dark mb-3">Access Your GetChatty Groups</h2>
+        <h2 class="fw-bold text-dark mb-3">GetChatty Access Control</h2>
         <p class="lead text-secondary mb-4">Log in to view and manage your access permissions.</p>
         <form method="get" action="/account/login">
             <button type="submit" class="btn btn-danger btn-lg rounded-pill px-5 py-3">
