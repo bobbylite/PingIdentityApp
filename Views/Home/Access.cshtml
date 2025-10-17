@@ -1,22 +1,36 @@
 ﻿@using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authentication.Cookies
 @using Microsoft.AspNetCore.Authentication.OpenIdConnect
+@using PingIdentityApp.Services.Certification
 @using PingIdentityApp.Services.PingOne
 
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IPingOneManagementService PingOneManagementService
+@inject ICertificationService CertificationService
 
 @{
     var user = HttpContextAccessor.HttpContext?.User;
     var groups = user?.Claims.Where(c => c.Type == "groups").Select(c => c.Value).ToList() ?? new List<string>();
+
     var allGroups = new List<(string Name, string Description)>
     {
         ("Basic", "Access to essential features for standard users"),
         ("Manager", "Access to management resources and certifications"),
-        ("Admin", "Full administrative control and elevated privileges")
+        ("Admin", "Full administrative control and elevated privileges"),
+        ("Employee", "Access to employee tools and resources"),
+        ("Vendor", "Access to vendor tools and resources"),
     };
-    var missingGroups = allGroups.Where(g => !groups.Contains(g.Name)).ToList();
+
     var subject = user?.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+
+    var pingOneGroups = await PingOneManagementService.GetGroupsAsync();
+
+    var missingGroups = pingOneGroups
+        .Where(pg => !groups.Contains(pg.Name))
+        .Where(pg => allGroups.Any(ag => ag.Name == pg.Name))
+        .ToList();
+
+    var hasAllGroups = missingGroups.Count == 0;
 }
 
 <!DOCTYPE html>
@@ -24,61 +38,68 @@
 <head>
     <meta charset="utf-8" />
     <title>Access Management - GetChatty</title>
+    <!--<script src=$"~/js/site.js"></script>-->
 </head>
-
+<body class="bg-body-tertiary align-items-center text-center">
 @if (user?.Identity?.IsAuthenticated is true)
 {
-    <body class="bg-body-tertiary">
         <div class="container py-5">
             <!-- Header -->
-            <div class="text-center mb-5">
+            <div class="text-center mb-5" data-tour-id="header-section">
                 <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" class="mb-3" style="width: 120px;">
                 <h1 class="fw-bold text-primary">Access Management</h1>
-                <p class="text-secondary">Welcome, <strong>@user.Identity.Name</strong> — manage your group access below.</p>
+                <p class="text-secondary">
+                    Welcome, <strong>@user.Identity.Name</strong> — manage your group access below.
+                </p>
             </div>
 
             <!-- Current Access -->
-            <div class="card shadow-sm mb-4 border-0">
+            <div class="card shadow-sm mb-4 border-0" data-tour-id="current-access-card">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0"><i class="bi bi-unlock-fill me-2"></i> Current Access</h4>
                 </div>
                 <div class="card-body">
                     @if (groups.Any())
                     {
-                        <ul class="list-group list-group-flush">
+                        <ul class="list-group list-group-flush" data-tour-id="current-groups-list">
                             @foreach (var group in groups)
                             {
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <span class="fw-semibold">@group</span>
-                                    <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1">Active</span>
+                                    <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1">
+                                        Active
+                                    </span>
                                 </li>
                             }
                         </ul>
                     }
                     else
                     {
-                        <p class="text-muted mb-0">You currently have no group access assigned.</p>
+                        <p class="text-muted mb-0" data-tour-id="no-groups-message">
+                            You currently have no group access assigned.
+                        </p>
                     }
                 </div>
             </div>
 
             <!-- Request New Access -->
-            <div class="card shadow-sm border-0">
+            <div class="card shadow-sm border-0" data-tour-id="request-access-card">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0"><i class="bi bi-lock-fill me-2"></i> Request Additional Access</h4>
                 </div>
                 <div class="card-body">
                     @if (TempData["Message"] != null)
                     {
-                        <div class="alert alert-success">@TempData["Message"]</div>
+                        <div class="alert alert-success" data-tour-id="success-message">@TempData["Message"]</div>
                     }
 
                     @if (missingGroups.Any())
                     {
-                        <table class="table table-hover align-middle">
+                        <table class="table table-hover align-middle" data-tour-id="missing-groups-table">
                             <thead class="table-primary">
                                 <tr>
                                     <th scope="col">Group Name</th>
+                                    <th scope="col">ID</th>
                                     <th scope="col">Description</th>
                                     <th scope="col" class="text-center">Action</th>
                                 </tr>
@@ -88,14 +109,29 @@
                                 {
                                     <tr>
                                         <td>@group.Name</td>
+                                        <td>@group.Id</td>
                                         <td>@group.Description</td>
                                         <td class="text-center">
-                                            <form method="post" action="/Groups/RequestAccess" class="d-inline">
-                                                <input type="hidden" name="groupName" value="@group.Name" />
-                                                <button type="submit" class="btn btn-outline-success btn-sm rounded-pill">
-                                                    <i class="bi bi-person-plus-fill me-1"></i> Request
-                                                </button>
-                                            </form>
+                                            @if(CertificationService.AccessRequests.Any(r => r.GroupId == group.Id))
+                                            {
+                                                <form id="@group.Id" method="post" action="/account/request-access" class="d-inline" data-tour-id="@group.Id">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="groupId" value="@group.Id" />
+                                                    <button type="submit" class="btn btn-outline-success btn-sm rounded-pill" disabled>
+                                                        <i class="bi bi-person-plus-fill me-1"></i> Request
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form id="@group.Id" method="post" action="/account/request-access" class="d-inline" data-tour-id="@group.Id">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="groupId" value="@group.Id" />
+                                                    <button type="submit" class="btn btn-outline-success btn-sm rounded-pill">
+                                                        <i class="bi bi-person-plus-fill me-1"></i> Request
+                                                    </button>
+                                                </form>
+                                            }
                                         </td>
                                     </tr>
                                 }
@@ -104,18 +140,17 @@
                     }
                     else
                     {
-                        <p class="text-muted mb-0">You already have access to all available groups.</p>
+                        <p class="text-muted mb-0" data-tour-id="all-access-message">
+                            You already have access to all available groups.
+                        </p>
                     }
                 </div>
             </div>
+
         </div>
-    </body>
 }
 else
-{
-    await PingOneManagementService.getUserByIdAsync(subject ?? string.Empty);
-    
-    <body class="bg-body-tertiary align-items-center text-center">
+{    
         <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" class="mb-4" style="width: 140px;">
         <h2 class="fw-bold text-dark mb-3">GetChatty Access Control</h2>
         <p class="lead text-secondary mb-4">Log in to view and manage your access permissions.</p>
@@ -124,6 +159,15 @@ else
                 <i class="bi bi-shield-lock-fill me-2"></i> Sign In
             </button>
         </form>
-    </body>
 }
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const params = new URLSearchParams(window.location.search);
+        const groupId = params.get('groupId');
+        if (window.tourScripts && groupId) {
+            window.tourScripts.startAccessRequestTour(groupId);
+        }
+    });
+</script>
+</body>
 </html>

@@ -1,0 +1,78 @@
+@using PingIdentityApp.Models
+@model List<AccessRequest>
+
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    ViewData["Title"] = "Certifications";
+    var user = HttpContextAccessor.HttpContext?.User;
+    var groups = user?.Claims.Where(c => c.Type == "groups").Select(c => c.Value).ToList() ?? new List<string>();
+    var isManager = groups.Contains("Manager");
+}
+
+@if(isManager is false)
+{
+    <div class="alert alert-danger mt-4" role="alert">
+        You do not have permission to view this page. Manager access is required.
+    </div>
+    return;
+}
+
+<div class="container mt-5">
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            @TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <p>No access requests found.</p>
+    }
+    else
+    {
+        <div class="text-center mb-5" data-tour-id="header-section">
+            <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" class="mb-3" style="width: 120px;">
+            <h1 class="fw-bold text-primary">Access Management</h1>
+            <p class="text-secondary">
+                Welcome, <strong>@user?.Identity?.Name</strong> — manage your access requests below.
+            </p>
+        </div>
+
+        <table class="table table-striped table-hover">
+            <thead class="table-primary">
+                <tr>
+                    <th>User</th>
+                    <th>Group</th>
+                    <th>Status</th>
+                    <th>Requested On</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var request in Model)
+                {
+                    <tr>
+                        <td>@request.UserId</td>
+                        <td>@request.GroupId</td>
+                        <td>@request.Status</td>
+                        <td>@request.RequestedAt.ToString("g")</td>
+                        <td>
+                            <form asp-action="ApproveRequest" method="post" class="d-inline">
+                                <input type="hidden" name="requestId" value="@request.Id" />
+                                <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                            </form>
+
+                            <form asp-action="DenyRequest" method="post" class="d-inline ms-1">
+                                <input type="hidden" name="requestId" value="@request.Id" />
+                                <button type="submit" class="btn btn-danger btn-sm">Deny</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

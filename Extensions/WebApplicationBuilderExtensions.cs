@@ -7,6 +7,7 @@ using PingIdentityApp.Constants;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using PingIdentityApp.Services.PingOne;
+using PingIdentityApp.Services.Certification;
 
 namespace PingIdentityApp.Extensions;
 
@@ -34,7 +35,10 @@ public static class WebApplicationBuilderExtensions
 
         // Add a singleton service of type ITokenService. The same instance of TokenService will be used every time ITokenService is requested.
         webApplicationBuilder.Services.AddSingleton<ITokenService, TokenService>();
+        webApplicationBuilder.Services.AddSingleton<ICertificationService, CertificationService>();
+
         webApplicationBuilder.Services.AddTransient<IPingOneManagementService, PingOneManagementService>();
+        
         webApplicationBuilder.Services.AddHttpContextAccessor();
         webApplicationBuilder.Services.AddControllersWithViews();
 
@@ -62,7 +66,7 @@ public static class WebApplicationBuilderExtensions
         {
             var apiOptionsSnapshot = provider.GetRequiredService<IOptionsMonitor<PingOneAuthenticationOptions>>();
             var apiOptions = apiOptionsSnapshot.CurrentValue;
-            client.BaseAddress = new Uri($"https+http://{apiOptions.BaseUrl}"); 
+            client.BaseAddress = new Uri($"{apiOptions.BaseUrl}"); 
         })
         .AddHttpMessageHandler<AuthenticationHandler>();
         

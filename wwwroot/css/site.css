@@ -20,3 +20,37 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.shepherd-getchatty .shepherd-content {
+  background-color: white !important;
+  color: #fff !important; 
+  border-radius: 16px !important;
+  border: 2px solid white !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  padding: 1rem 1.25rem !important;
+}
+
+.shepherd-getchatty .shepherd-arrow:before {
+  background: #d62828 !important;
+  left: -1px;
+}
+
+.shepherd-getchatty .shepherd-button {
+  background-color: #fff !important;
+  color: #d62828 !important;
+  border: none !important;
+  border-radius: 20px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.shepherd-getchatty .shepherd-button:hover {
+  background-color: #b71c1c !important;
+  color: #fff !important;
+}
+
+.shepherd-header {
+  background: white !important;
+}
+
