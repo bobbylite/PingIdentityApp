@@ -29,6 +29,16 @@ namespace PingIdentityApp.Controllers
         }
 
         /// <summary>
+        /// History action to display access requests history.
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult History()
+        {
+            var requests = _certificationService.AccessRequestsHistory;
+            return View("History", requests);
+        }
+
+        /// <summary>
         /// ApproveRequest action to approve an access request.
         /// </summary>
         /// <param name="requestId"></param>

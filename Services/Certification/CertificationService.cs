@@ -8,7 +8,6 @@ namespace PingIdentityApp.Services.Certification;
 public class CertificationService : ICertificationService
 {
     private readonly ILogger<CertificationService> _logger;
-    private readonly IHttpClientFactory _httpClientFactory;
     private readonly IPingOneManagementService _pingOneManagementService;
 
     /// <summary>
@@ -19,23 +18,24 @@ public class CertificationService : ICertificationService
     /// <param name="pingOneManagementService"></param>
     public CertificationService(
         ILogger<CertificationService> logger,
-        IHttpClientFactory httpClientFactory,
         IPingOneManagementService pingOneManagementService
     )
     {
         ArgumentNullException.ThrowIfNull(logger);
-        ArgumentNullException.ThrowIfNull(httpClientFactory);
         ArgumentNullException.ThrowIfNull(pingOneManagementService);
 
         _logger = logger;
-        _httpClientFactory = httpClientFactory;
         _pingOneManagementService = pingOneManagementService;
 
         AccessRequests = [];
+        AccessRequestsHistory = [];
     }
 
     /// <inheritdoc />
     public List<AccessRequest> AccessRequests { get; set; }
+
+    /// <inheritdoc />
+    public List<AccessRequest> AccessRequestsHistory { get; set; }
 
     /// <inheritdoc />
     public async Task ApproveAccessRequestAsync(string requestId)
@@ -43,10 +43,12 @@ public class CertificationService : ICertificationService
         var request = AccessRequests.SingleOrDefault(r => r.Id == requestId);
         var userId = request?.UserId ?? throw new NullOrEmptyTokenException("UserId is null or empty");
         var groupId = request?.GroupId ?? throw new NullOrEmptyTokenException("GroupId is null or empty");
+        request.Status = AccessRequestStatus.Approved;
+        AccessRequestsHistory.Add(request);
+        AccessRequests.Remove(request);
 
         await _pingOneManagementService.ProvisionGroupMembershipAsync(userId, groupId);
 
-        AccessRequests.Remove(request);
         _logger.LogInformation("Approved access request {RequestId} for user {UserId} to join group {GroupId}", requestId, userId, groupId);
     }
 
@@ -74,8 +76,9 @@ public class CertificationService : ICertificationService
         var request = AccessRequests.SingleOrDefault(r => r.Id == requestId);
         var userId = request?.UserId ?? throw new NullOrEmptyTokenException("UserId is null or empty");
         var groupId = request?.GroupId ?? throw new NullOrEmptyTokenException("GroupId is null or empty");
-        
         request.Status = AccessRequestStatus.Denied;
+        AccessRequestsHistory.Add(request);
+        AccessRequests.Remove(request);
 
         _logger.LogInformation("Denied access request {RequestId} for user {UserId} to join group {GroupId}", requestId, userId, groupId);
 

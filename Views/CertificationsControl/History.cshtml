@@ -29,7 +29,7 @@
 
     @if (Model == null || !Model.Any())
     {
-        <p>No access requests found.</p>
+        <p>No access requests fulfilled.</p>
     }
     else
     {
@@ -37,39 +37,29 @@
             <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" class="mb-3" style="width: 120px;">
             <h1 class="fw-bold text-primary">Access Management</h1>
             <p class="text-secondary">
-                Welcome, <strong>@user?.Identity?.Name</strong> — manage your access requests below.
+                Welcome, <strong>@user?.Identity?.Name</strong> — these are your access requests below.
             </p>
         </div>
 
         <table class="table table-striped table-hover">
             <thead class="table-primary">
                 <tr>
+                    <th>Request ID</th>
                     <th>User</th>
                     <th>Group</th>
                     <th>Status</th>
                     <th>Requested On</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var request in Model)
                 {
                     <tr>
+                        <td>@request.Id</td>
                         <td>@request.UserId</td>
                         <td>@request.GroupId</td>
                         <td>@request.Status</td>
                         <td>@request.RequestedAt.ToString("g")</td>
-                        <td>
-                            <form asp-action="ApproveRequest" method="post" class="d-inline">
-                                <input type="hidden" name="requestId" value="@request.Id" />
-                                <button type="submit" class="btn btn-success btn-sm">Approve</button>
-                            </form>
-
-                            <form asp-action="DenyRequest" method="post" class="d-inline ms-1">
-                                <input type="hidden" name="requestId" value="@request.Id" />
-                                <button type="submit" class="btn btn-danger btn-sm">Deny</button>
-                            </form>
-                        </td>
                     </tr>
                 }
             </tbody>
