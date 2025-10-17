@@ -35,6 +35,26 @@ public class PingOneManagementService : IPingOneManagementService
     }
 
     /// <inheritdoc />
+    public async Task<IEnumerable<PingOneUser>> GetUsersAsync()
+    {
+        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientNames.PingOneApi);
+        var response = await httpClient.GetAsync($"environments/{_optionsMonitor.CurrentValue.EnvironmentId}/users");
+
+        response.EnsureSuccessStatusCode();
+
+        var deserializedUsersResponse = await response.Content.ReadFromJsonAsync<PingOneResponse>();
+        if (deserializedUsersResponse is null)
+        {
+            _logger.LogError("Failed to deserialize users response");
+            return Enumerable.Empty<PingOneUser>();
+        }
+
+        var users = deserializedUsersResponse.EmbeddedData?.Users ?? Enumerable.Empty<PingOneUser>();
+
+        return users;
+    }
+
+    /// <inheritdoc />
     public async Task<IEnumerable<Group>> GetGroupsAsync()
     {
         var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientNames.PingOneApi);
@@ -50,6 +70,28 @@ public class PingOneManagementService : IPingOneManagementService
         }
 
         return deserializedGroupsResponse.EmbeddedData?.Groups ?? Enumerable.Empty<Group>();
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<GroupMembership>> GetUsersGroupMembershipAsync(string userId)
+    {
+        ArgumentNullException.ThrowIfNullOrEmpty(userId);
+
+        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientNames.PingOneApi);
+        var response = await httpClient.GetAsync($"environments/{_optionsMonitor.CurrentValue.EnvironmentId}/users/{userId}/memberOfGroups");
+
+        response.EnsureSuccessStatusCode();
+
+        var deserializedGroupsResponse = await response.Content.ReadFromJsonAsync<PingOneResponse>();
+        if (deserializedGroupsResponse is null)
+        {
+            _logger.LogError("Failed to deserialize groups response");
+            return Enumerable.Empty<GroupMembership>();
+        }
+
+        var groupMemberships = deserializedGroupsResponse.EmbeddedData?.GroupMemberships ?? Enumerable.Empty<GroupMembership>();
+
+        return groupMemberships;
     }
 
     /// <inheritdoc />
@@ -70,6 +112,26 @@ public class PingOneManagementService : IPingOneManagementService
 
         var url = $"environments/{_optionsMonitor.CurrentValue.EnvironmentId}/users/{userId}/memberOfGroups";
         var response = await httpClient.PostAsync(url, content);
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("PingOne returned {StatusCode}: {Response}", response.StatusCode, responseContent);
+            throw new HttpRequestException($"PingOne returned {response.StatusCode}: {responseContent}");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task DeprovisionGroupMembershipAsync(string userId, string groupId)
+    {
+        ArgumentNullException.ThrowIfNullOrEmpty(userId);
+        ArgumentNullException.ThrowIfNullOrEmpty(groupId);
+
+
+        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientNames.PingOneApi);
+
+        var url = $"environments/{_optionsMonitor.CurrentValue.EnvironmentId}/users/{userId}/memberOfGroups/{groupId}";
+        var response = await httpClient.DeleteAsync(url);
         var responseContent = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
