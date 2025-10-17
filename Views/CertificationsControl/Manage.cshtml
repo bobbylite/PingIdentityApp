@@ -10,6 +10,17 @@
     var currentUser = HttpContextAccessor.HttpContext?.User;
     var users = await PingOneManagementService.GetUsersAsync();
     var allGroups = await PingOneManagementService.GetGroupsAsync();
+    var currentUsersGroups = currentUser?.Claims.Where(c => c.Type == "groups").Select(c => c.Value).ToList() ?? new List<string>();
+
+    var isManager = currentUsersGroups.Contains("Manager");
+}
+
+@if(isManager is false)
+{
+    <div class="alert alert-danger mt-4" role="alert">
+        You do not have permission to view this page. Manager access is required.
+    </div>
+    return;
 }
 
 <div class="container-fluid py-4">
@@ -88,6 +99,11 @@
                                             data-bs-target="#removeFromGroupModal-@u.Id">
                                         <i class="bi bi-dash-circle"></i> Remove
                                     </button>
+                                    <button type="button" class="btn btn-outline-info btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#viewGroupsModal-@u.Id">
+                                        <i class="bi bi-eye"></i> View
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -154,6 +170,39 @@
                                             <button type="submit" class="btn btn-danger">Remove</button>
                                         </div>
                                     </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- View User Groups Modal -->
+                        <div class="modal fade" id="viewGroupsModal-@u.Id" tabindex="-1" aria-labelledby="viewGroupsModalLabel-@u.Id" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content border-0 shadow">
+                                    <div class="modal-header bg-info text-white">
+                                        <h5 class="modal-title" id="viewGroupsModalLabel-@u.Id">@u.Username's Groups</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        @if (memberGroups.Any())
+                                        {
+                                            <ul class="list-group">
+                                                @foreach (var g in memberGroups)
+                                                {
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        @g.Name
+                                                        <span class="badge bg-primary rounded-pill">@g.Id</span>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-muted">This user is not a member of any groups.</div>
+                                        }
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
