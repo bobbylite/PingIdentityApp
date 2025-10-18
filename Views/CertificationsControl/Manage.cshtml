@@ -1,0 +1,219 @@
+@using PingIdentityApp.Models
+@using PingIdentityApp.Services.PingOne
+
+@inject IPingOneManagementService PingOneManagementService
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    ViewData["Title"] = "User Management";
+
+    var currentUser = HttpContextAccessor.HttpContext?.User;
+    var users = await PingOneManagementService.GetUsersAsync();
+    var allGroups = await PingOneManagementService.GetGroupsAsync();
+    var currentUsersGroups = currentUser?.Claims.Where(c => c.Type == "groups").Select(c => c.Value).ToList() ?? new List<string>();
+
+    var isManager = currentUsersGroups.Contains("Manager");
+}
+
+@if(isManager is false)
+{
+    <div class="alert alert-danger mt-4" role="alert">
+        You do not have permission to view this page. Manager access is required.
+    </div>
+    return;
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold text-primary">User Management</h2>
+            <p class="text-muted">View and manage user group memberships.</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light fw-semibold">
+            Users
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Username</th>
+                        <th scope="col">MFA</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (users != null && users.Any())
+                {
+                    foreach (var u in users)
+                    {
+                        var userId = u.Id ?? string.Empty;
+                        var userGroups = await PingOneManagementService.GetUsersGroupMembershipAsync(userId);
+                        var userGroupIds = userGroups.Select(g => g.Id).ToHashSet();
+                        var availableGroups = allGroups.Where(g => !userGroupIds.Contains(g.Id)).ToList();
+                        var memberGroups = allGroups.Where(g => userGroupIds.Contains(g.Id)).ToList();
+
+                        <tr>
+                            <td>@($"{u.Name?.Given} {u.Name?.Family}")</td>
+                            <td>@u.Email</td>
+                            <td>@u.Username</td>
+                            <td>
+                                @if (u.MfaEnabled)
+                                {
+                                    <span class="badge bg-success">Enabled</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Disabled</span>
+                                }
+                            </td>
+                            <td>
+                                @if (u.Enabled)
+                                {
+                                    <span class="badge bg-primary">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Disabled</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#addToGroupModal-@u.Id">
+                                        <i class="bi bi-plus-circle"></i> Add to Group
+                                    </button>
+
+                                    <button type="button" class="btn btn-outline-danger btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#removeFromGroupModal-@u.Id">
+                                        <i class="bi bi-dash-circle"></i> Remove
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#viewGroupsModal-@u.Id">
+                                        <i class="bi bi-eye"></i> View
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Add User to Group Modal -->
+                        <div class="modal fade" id="addToGroupModal-@u.Id" tabindex="-1" aria-labelledby="addToGroupModalLabel-@u.Id" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content border-0 shadow">
+                                    <div class="modal-header bg-primary text-white">
+                                        <h5 class="modal-title" id="addToGroupModalLabel-@u.Id">Add @u.Username to Group</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form asp-controller="CertificationsControl" asp-action="ProvisionGroupMembership" method="post">
+                                        <div class="modal-body">
+                                            <input type="hidden" name="userId" value="@u.Id" />
+                                            <div class="mb-3">
+                                                <label for="groupId-@u.Id" class="form-label">Select Group</label>
+                                                <select name="groupId" id="groupId-@u.Id" class="form-select" required>
+                                                    <option value="">-- Choose Group --</option>
+                                                    @foreach (var g in availableGroups)
+                                                    {
+                                                        <option value="@g.Id">@g.Name</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary">Add</button>
+                                        </div>
+                                    </form>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Remove User from Group Modal -->
+                        <div class="modal fade" id="removeFromGroupModal-@u.Id" tabindex="-1" aria-labelledby="removeFromGroupModalLabel-@u.Id" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content border-0 shadow">
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title" id="removeFromGroupModalLabel-@u.Id">Remove @u.Username from Group</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div> 
+                                    <form asp-controller="CertificationsControl" asp-action="DeprovisionGroupMembership" method="post">
+                                        <div class="modal-body">
+                                            <input type="hidden" name="UserId" value="@u.Id" />
+                                            <div class="mb-3">
+                                                <label for="removeGroupId-@u.Id" class="form-label">Select Group</label>
+                                                <select name="GroupId" id="removeGroupId-@u.Id" class="form-select" required>
+                                                    <option value="">-- Choose Group --</option>
+                                                    @foreach (var g in memberGroups)
+                                                    {
+                                                        <option value="@g.Id">@g.Name</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div class="alert alert-warning mb-0">
+                                                Are you sure you want to remove this user from the selected group?
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-danger">Remove</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- View User Groups Modal -->
+                        <div class="modal fade" id="viewGroupsModal-@u.Id" tabindex="-1" aria-labelledby="viewGroupsModalLabel-@u.Id" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content border-0 shadow">
+                                    <div class="modal-header bg-info text-white">
+                                        <h5 class="modal-title" id="viewGroupsModalLabel-@u.Id">@u.Username's Groups</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        @if (memberGroups.Any())
+                                        {
+                                            <ul class="list-group">
+                                                @foreach (var g in memberGroups)
+                                                {
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        @g.Name
+                                                        <span class="badge bg-primary rounded-pill">@g.Id</span>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-muted">This user is not a member of any groups.</div>
+                                        }
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No users found.
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
