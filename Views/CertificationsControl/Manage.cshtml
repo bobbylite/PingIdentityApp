@@ -53,13 +53,9 @@
                     foreach (var u in users)
                     {
                         var userId = u.Id ?? string.Empty;
-                        // get user's current group memberships
                         var userGroups = await PingOneManagementService.GetUsersGroupMembershipAsync(userId);
                         var userGroupIds = userGroups.Select(g => g.Id).ToHashSet();
-
-                        // groups user is not in
                         var availableGroups = allGroups.Where(g => !userGroupIds.Contains(g.Id)).ToList();
-                        // groups user *is* in
                         var memberGroups = allGroups.Where(g => userGroupIds.Contains(g.Id)).ToList();
 
                         <tr>
