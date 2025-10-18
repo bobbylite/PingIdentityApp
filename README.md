@@ -55,10 +55,10 @@ cd PingIdentityApp
   "Schemes": {
     "OpenIdConnect": {
       "SignInScheme": "Cookies",
-      "Authority": "https://auth.pingone.com/YOUR-TENANT-ID/as",
-      "ClientId": "YOUR-CLIENT-ID",
-      "ClientSecret": "YOUR-CLIENT-SECRET",
-      "ClaimsIssuer": "https://auth.pingone.com/YOUR-TENANT-ID/as",
+      "Authority": "https://auth.pingone.com/{EnvironmentId}/as",
+      "ClientId": "{ClientId}",
+      "ClientSecret": "{ClientSecret}",
+      "ClaimsIssuer": "https://auth.pingone.com/{EnvironmentId}/as",
       "ResponseType": "code",
       "CallbackPath": "/signin-oidc",
       "SaveTokens": true,
