@@ -1,11 +1,19 @@
-namespace PingIdentityApp.Models;
-/*
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace PingIdentityApp.Data.Entities;
+
+/// <summary>
+/// Represents an access request in the system.
+/// </summary>
+[Table("AccessRequests")]
 public class AccessRequest
 {
     /// <summary>
-    /// Gets or sets the unique identifier for the access request.
+    /// Unique identifier for the access request.
     /// </summary>
-    public Guid? Id { get; set; } = Guid.NewGuid();
+    [Key]
+    public Guid Id { get; set; }
 
     /// <summary>
     /// Gets or sets the unique identifier for the access request.
@@ -32,4 +40,3 @@ public class AccessRequest
     /// </summary>
     public string? Status { get; set; } = "Pending";
 }
-*/

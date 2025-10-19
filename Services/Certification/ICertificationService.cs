@@ -5,16 +5,6 @@ namespace PingIdentityApp.Services.Certification;
 public interface ICertificationService
 {
     /// <summary>
-    /// Gets or sets the access requests.
-    /// </summary>
-    List<AccessRequest> AccessRequests { get; set; }
-
-    /// <summary>
-    /// Gets or sets the access requests history.
-    /// </summary>
-    List<AccessRequest> AccessRequestsHistory { get; set; }
-
-    /// <summary>
     /// Creates an access request for a user to join a group.
     /// </summary>
     /// <param name="userId"></param>

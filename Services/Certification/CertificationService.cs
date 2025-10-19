@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using GetChatty.Data;
 using PingIdentityApp.Constants;
 using PingIdentityApp.Exceptions;
 using PingIdentityApp.Models;
@@ -9,6 +11,7 @@ public class CertificationService : ICertificationService
 {
     private readonly ILogger<CertificationService> _logger;
     private readonly IPingOneManagementService _pingOneManagementService;
+    private readonly GetChattyDataContext _dataContext;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CertificationService"/> class.
@@ -18,70 +21,59 @@ public class CertificationService : ICertificationService
     /// <param name="pingOneManagementService"></param>
     public CertificationService(
         ILogger<CertificationService> logger,
-        IPingOneManagementService pingOneManagementService
+        IPingOneManagementService pingOneManagementService,
+        GetChattyDataContext dataContext
     )
     {
         ArgumentNullException.ThrowIfNull(logger);
         ArgumentNullException.ThrowIfNull(pingOneManagementService);
+        ArgumentNullException.ThrowIfNull(dataContext);
 
         _logger = logger;
         _pingOneManagementService = pingOneManagementService;
-
-        AccessRequests = [];
-        AccessRequestsHistory = [];
+        _dataContext = dataContext;
     }
-
-    /// <inheritdoc />
-    public List<AccessRequest> AccessRequests { get; set; }
-
-    /// <inheritdoc />
-    public List<AccessRequest> AccessRequestsHistory { get; set; }
 
     /// <inheritdoc />
     public async Task ApproveAccessRequestAsync(string requestId)
     {
-        var request = AccessRequests.SingleOrDefault(r => r.Id == requestId);
+        var request = await _dataContext.AccessRequests.SingleOrDefaultAsync(r => r.Id.ToString() == requestId);
         var userId = request?.UserId ?? throw new NullOrEmptyTokenException("UserId is null or empty");
         var groupId = request?.GroupId ?? throw new NullOrEmptyTokenException("GroupId is null or empty");
         request.Status = AccessRequestStatus.Approved;
-        AccessRequestsHistory.Add(request);
-        AccessRequests.Remove(request);
-
+        await _dataContext.SaveChangesAsync();
         await _pingOneManagementService.ProvisionGroupMembershipAsync(userId, groupId);
 
         _logger.LogInformation("Approved access request {RequestId} for user {UserId} to join group {GroupId}", requestId, userId, groupId);
     }
 
     /// <inheritdoc />
-    public Task CreateAccessRequestAsync(string userId, string groupId)
+    public async Task CreateAccessRequestAsync(string userId, string groupId)
     {
-        var newAccessRequest = new AccessRequest
+        var dbTestAccessRequest = new Data.Entities.AccessRequest
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid(),
             UserId = userId,
             GroupId = groupId,
             RequestedAt = DateTime.UtcNow,
             Status = AccessRequestStatus.Pending
         };
 
-        AccessRequests.Add(newAccessRequest);
+        await _dataContext.AccessRequests.AddAsync(dbTestAccessRequest);
+        await _dataContext.SaveChangesAsync();
 
-        _logger.LogInformation("Created access request {RequestId} for user {UserId} to join group {GroupId}", newAccessRequest.Id, userId, groupId);
-        return Task.CompletedTask;
+        _logger.LogInformation("Created access request {RequestId} for user {UserId} to join group {GroupId}", dbTestAccessRequest.Id, userId, groupId);
     }
 
     /// <inheritdoc />
-    public Task DenyAccessRequestAsync(string requestId)
+    public async Task DenyAccessRequestAsync(string requestId)
     {
-        var request = AccessRequests.SingleOrDefault(r => r.Id == requestId);
+        var request = await _dataContext.AccessRequests.SingleOrDefaultAsync(r => r.Id.ToString() == requestId);
         var userId = request?.UserId ?? throw new NullOrEmptyTokenException("UserId is null or empty");
         var groupId = request?.GroupId ?? throw new NullOrEmptyTokenException("GroupId is null or empty");
         request.Status = AccessRequestStatus.Denied;
-        AccessRequestsHistory.Add(request);
-        AccessRequests.Remove(request);
+        await _dataContext.SaveChangesAsync();
 
         _logger.LogInformation("Denied access request {RequestId} for user {UserId} to join group {GroupId}", requestId, userId, groupId);
-
-        return Task.CompletedTask;
     }
 }

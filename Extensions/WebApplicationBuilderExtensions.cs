@@ -8,11 +8,31 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using PingIdentityApp.Services.PingOne;
 using PingIdentityApp.Services.Certification;
+using Microsoft.EntityFrameworkCore;
+using GetChatty.Data;
 
 namespace PingIdentityApp.Extensions;
 
 public static class WebApplicationBuilderExtensions
-{   
+{
+    /// <summary>
+    /// Add support for persisting data to a PostgreSQL database in Azure.
+    /// </summary>
+    /// <param name="webApplicationBuilder">A builder for web applications and services.</param>
+    /// <returns>A reference to this instance after the operation has completed.</returns>
+    public static WebApplicationBuilder AddDataPersistence(this WebApplicationBuilder webApplicationBuilder)
+    {
+        ArgumentNullException.ThrowIfNull(webApplicationBuilder);
+
+        var connectionString = webApplicationBuilder.Configuration.GetConnectionString("PostgreSqlConnection");
+
+        webApplicationBuilder.Services.AddDbContext<GetChattyDataContext>(opt =>
+            opt.UseNpgsql(connectionString));
+        webApplicationBuilder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+        return webApplicationBuilder;
+    }
+    
     /// <summary>
     /// Add services to the application.
     /// </summary>
@@ -35,8 +55,8 @@ public static class WebApplicationBuilderExtensions
 
         // Add a singleton service of type ITokenService. The same instance of TokenService will be used every time ITokenService is requested.
         webApplicationBuilder.Services.AddSingleton<ITokenService, TokenService>();
-        webApplicationBuilder.Services.AddSingleton<ICertificationService, CertificationService>();
-
+        
+        webApplicationBuilder.Services.AddTransient<ICertificationService, CertificationService>();
         webApplicationBuilder.Services.AddTransient<IPingOneManagementService, PingOneManagementService>();
         
         webApplicationBuilder.Services.AddHttpContextAccessor();
