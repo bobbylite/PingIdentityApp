@@ -50,7 +50,7 @@ public class CertificationsControlController : Controller
     /// Manage action to display user and group management.
     /// </summary>
     /// <returns></returns>
-    public async Task<IActionResult> Manage()
+    public IActionResult Manage()
     {
         return View("Manage");
     }
