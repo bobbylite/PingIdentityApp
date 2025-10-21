@@ -182,6 +182,79 @@ public class PingOneManagementService : IPingOneManagementService
     }
 
     /// <inheritdoc />
+    public async Task<VerifyTransactionCreatedResponse> CreateVerifyTransactionAsync(string userId, string dateOfBirth, string address)
+    {
+        ArgumentNullException.ThrowIfNullOrEmpty(userId);
+        ArgumentNullException.ThrowIfNullOrEmpty(dateOfBirth);
+        ArgumentNullException.ThrowIfNullOrEmpty(address);
+
+        var user = await GetUserByIdAsync(userId);
+        ArgumentNullException.ThrowIfNull(user);
+
+        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientNames.PingOneApi);
+
+        var verifyTransactionRequest = new VerifyTransactionRequest
+        {
+            Policy = new VerifyPolicy
+            {
+                Id = "bfa02484-67b8-4ccc-9f6b-20bdc621307a"
+            },
+            Requirements = new VerifyRequirements
+            {
+                GivenName = new VerifyField { Value = user.Name?.Given },
+                FamilyName = new VerifyField { Value = user.Name?.Family },
+                BirthDate = new VerifyField { Value = dateOfBirth },
+                Address = new VerifyField { Value = address }
+            },
+            ReturnUrl = "https://yourapp.com/verification-complete"
+        };
+
+        var json = JsonSerializer.Serialize(verifyTransactionRequest);
+        var content = new StringContent(json, System.Text.Encoding.UTF8, MediaTypeNames.Application.Json);
+
+        var url = $"environments/{_optionsMonitor.CurrentValue.EnvironmentId}/users/{userId}/verifyTransactions";
+        var response = await httpClient.PostAsync(url, content);
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("PingOne returned {StatusCode}: {Response}", response.StatusCode, responseContent);
+            throw new HttpRequestException($"PingOne returned {response.StatusCode}: {responseContent}");
+        }
+
+        var deserializedTransactionResponse = JsonSerializer.Deserialize<VerifyTransactionCreatedResponse>(responseContent);
+
+        if (deserializedTransactionResponse is null)
+        {
+            _logger.LogError("Failed to deserialize transaction response");
+            throw new InvalidOperationException("Failed to deserialize transaction response");
+        }
+
+        return deserializedTransactionResponse;
+    }
+
+    /// <inheritdoc />
+    public async Task<VerifyTransactionResponse> GetVerifyTransactionAsync(string userId, string transactionId)
+    {
+        ArgumentNullException.ThrowIfNullOrEmpty(userId);
+        ArgumentNullException.ThrowIfNullOrEmpty(transactionId);
+
+        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientNames.PingOneApi);
+        var response = await httpClient.GetAsync($"environments/{_optionsMonitor.CurrentValue.EnvironmentId}/users/{userId}/verifyTransactions/{transactionId}");
+
+        response.EnsureSuccessStatusCode();
+
+        var deserializedTransactionResponse = await response.Content.ReadFromJsonAsync<VerifyTransactionResponse>();
+        if (deserializedTransactionResponse is null)
+        {
+            _logger.LogError("Failed to deserialize transaction response");
+            throw new InvalidOperationException("Failed to deserialize transaction response");
+        }
+
+        return deserializedTransactionResponse;
+    }
+
+    /// <inheritdoc />
     public void Dispose()
     {
     }
