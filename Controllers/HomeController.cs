@@ -178,4 +178,15 @@ public class HomeController : Controller
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
+
+    /// <summary>
+    /// AccessDenied action to handle access denied errors.
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    [Route("AccessDenied")]
+    public IActionResult AccessDenied()
+    {
+        return View();
+    }
 }
