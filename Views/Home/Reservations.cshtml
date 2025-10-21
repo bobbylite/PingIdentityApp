@@ -1,0 +1,66 @@
+﻿@using PingIdentityApp.Models
+@using PingIdentityApp.Services.PingOne
+@using System.Security.Claims
+@inject IPingOneManagementService PingOneManagementService
+
+@{
+    ViewData["Title"] = "GetChatty Kiosk Portal";
+    var availableGroups = await PingOneManagementService.GetGroupsAsync();
+    var userId = Context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+    var userName = Context.User.Identity?.Name;
+}
+
+<div class="min-vh-100 d-flex flex-column justify-content-center align-items-center bg-light position-relative overflow-hidden">
+    <!-- Background gradient & accent circles omitted for brevity, keep as-is -->
+
+    <!-- Card -->
+    <div class="card shadow-lg border-0 rounded-4 text-center bg-white bg-opacity-75 backdrop-blur p-5 position-relative" style="z-index: 1; max-width: 520px;">
+        <div class="mb-4">
+            <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" style="width: 120px;" class="mb-3" />
+            <h1 class="fw-bold text-dark">Welcome to GetChatty</h1>
+            <p class="text-secondary mb-4">
+                Welcome @userName!, we just need to collect some information to begin your identity proofing process.
+            </p>
+            <p class="text-secondary mb-4">
+                Once completed, you'll be able to reserve a device and start your GetChatty journey.
+            </p>
+        </div>
+
+        <!-- Kiosk reservation form -->
+        <form asp-action="IdentityProofing" method="post" class="text-start">
+            <div class="mb-3">
+                <label for="userId" class="form-label fw-semibold text-secondary">User ID</label>
+                <input type="text" id="userId" value="@userId" name="UserId" class="form-control form-control-lg rounded-3" placeholder="Enter your User ID" required />
+            </div>
+
+            <div class="mb-3">
+                <label for="dateOfBirth" class="form-label fw-semibold text-secondary">Date of Birth</label>
+                <input type="date" id="dateOfBirth" name="DateOfBirth" class="form-control form-control-lg rounded-3" required />
+            </div>
+
+            <div class="mb-3">
+                <label for="address" class="form-label fw-semibold text-secondary">Address</label>
+                <input type="text" id="address" name="Address" class="form-control form-control-lg rounded-3" placeholder="Street, City, State, ZIP" required />
+            </div>
+
+            <button type="submit" class="btn btn-danger btn-lg w-100 rounded-pill fw-semibold shadow-sm">
+                <i class="bi bi-box-seam me-2"></i> Reserve Device
+            </button>
+        </form>
+
+        <!-- Footer info -->
+        <div class="mt-5 text-center">
+            <small class="text-muted d-block mb-2">
+                Already invited? <a href="/account/verify" class="text-danger fw-semibold text-decoration-none">Verify your account</a>
+            </small>
+            <small class="text-muted">
+                Powered by <strong>Ping Identity</strong>
+            </small>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5 text-center text-muted small position-relative" style="z-index: 1;">
+        <p class="mb-0">&copy; @DateTime.Now.Year GetChatty Ltd. All rights reserved.</p>
+    </footer>
+</div>

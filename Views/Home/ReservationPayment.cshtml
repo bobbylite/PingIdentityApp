@@ -1,0 +1,66 @@
+@model PingIdentityApp.Models.ReservationPayment
+
+@{
+    ViewData["Title"] = "Payment";
+}
+
+<div class="d-flex flex-column justify-content-center align-items-center bg-light min-vh-100">
+    <div class="bg-white p-5 rounded-4 shadow-lg text-center" style="max-width: 550px;">
+        <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" class="mb-4" style="width: 120px;" />
+
+        <h2 class="fw-bold text-dark mb-3">Complete Your Payment</h2>
+        <p class="text-secondary mb-4">
+            You’re reserving a <strong>@Model.Device</strong> for pickup at <strong>@Model.Location</strong> 
+            during <strong>@Model.TimeSlot</strong>.
+        </p>
+
+        <form asp-action="ReservationConfirmation" method="post" id="paymentForm">
+            <input type="hidden" name="Location" value="@Model.Location" />
+            <input type="hidden" name="Device" value="@Model.Device" />
+            <input type="hidden" name="TimeSlot" value="@Model.TimeSlot" />
+            <input type="hidden" name="Amount" value="@Model.Amount" />
+
+            <div id="paymentSection">
+                <button type="submit" id="completePaymentBtn" 
+                        class="btn btn-lg btn-danger px-5 py-3 rounded-pill fw-semibold">
+                    <i class="bi bi-credit-card-fill me-2"></i> Complete Payment
+                </button>
+            </div>
+
+            <div id="processingSection" class="mt-4 d-none">
+                <div class="spinner-border text-danger mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                <h5 class="text-secondary">Processing your payment...</h5>
+            </div>
+        </form>
+
+        <div id="successSection" class="mt-4 d-none">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+            <h4 class="fw-bold text-success mt-3">Payment Successful!</h4>
+            <p class="text-muted">Redirecting to your reservation confirmation...</p>
+        </div>
+    </div>
+
+    <footer class="mt-5 text-center text-muted small">
+        <p class="mb-0">&copy; @DateTime.Now.Year GetChatty Ltd. All rights reserved.</p>
+    </footer>
+</div>
+
+@section Scripts {
+    <script>
+        const paymentForm = document.getElementById("paymentForm");
+        const paymentSection = document.getElementById("paymentSection");
+        const processingSection = document.getElementById("processingSection");
+
+        paymentForm.addEventListener("submit", function (e) {
+            e.preventDefault(); // Stop immediate submit
+
+            // Show spinner and fake 2-second payment process
+            paymentSection.classList.add("d-none");
+            processingSection.classList.remove("d-none");
+
+            setTimeout(() => {
+                paymentForm.submit(); // Actually submit after 2 seconds
+            }, 2000);
+        });
+    </script>
+}
