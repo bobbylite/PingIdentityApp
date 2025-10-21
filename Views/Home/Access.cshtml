@@ -1,12 +1,14 @@
 ﻿@using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authentication.Cookies
 @using Microsoft.AspNetCore.Authentication.OpenIdConnect
+@using GetChatty.Data
 @using PingIdentityApp.Services.Certification
 @using PingIdentityApp.Services.PingOne
 
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IPingOneManagementService PingOneManagementService
 @inject ICertificationService CertificationService
+@inject GetChattyDataContext DataContext
 
 @{
     var user = HttpContextAccessor.HttpContext?.User;
@@ -112,7 +114,7 @@
                                         <td>@group.Id</td>
                                         <td>@group.Description</td>
                                         <td class="text-center">
-                                            @if(CertificationService.AccessRequests.Any(r => r.GroupId == group.Id))
+                                            @if(DataContext.AccessRequests.Any(r => r.GroupId == group.Id))
                                             {
                                                 <form id="@group.Id" method="post" action="/account/request-access" class="d-inline" data-tour-id="@group.Id">
                                                     @Html.AntiForgeryToken()

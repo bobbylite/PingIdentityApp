@@ -1,4 +1,5 @@
 @using PingIdentityApp.Models
+@using PingIdentityApp.Data.Entities
 @model List<AccessRequest>
 
 @inject IHttpContextAccessor HttpContextAccessor
@@ -44,19 +45,25 @@
         <table class="table table-striped table-hover">
             <thead class="table-primary">
                 <tr>
-                    <th>User</th>
-                    <th>Group</th>
+                    <th>User ID</th>
+                    <th>Group ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Group Name</th>
                     <th>Status</th>
                     <th>Requested On</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var request in Model)
+                @foreach (var request in Model.Where(r => r.Status == "Pending"))
                 {
                     <tr>
                         <td>@request.UserId</td>
                         <td>@request.GroupId</td>
+                        <td>@request.FirstName</td>
+                        <td>@request.LastName</td>
+                        <td>@request.GroupName</td>
                         <td>@request.Status</td>
                         <td>@request.RequestedAt.ToString("g")</td>
                         <td>

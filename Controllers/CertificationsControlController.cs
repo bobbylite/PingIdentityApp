@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using PingIdentityApp.Services.Certification;
 using Microsoft.AspNetCore.Authorization;
 using PingIdentityApp.Services.PingOne;
+using GetChatty.Data;
 
 namespace PingIdentityApp.Controllers;
 
@@ -10,6 +11,7 @@ public class CertificationsControlController : Controller
 {
     private readonly ICertificationService _certificationService;
     private readonly IPingOneManagementService _pingOneManagementService;
+    private readonly GetChattyDataContext _dataContext;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CertificationsControlController"/> class.
@@ -17,13 +19,16 @@ public class CertificationsControlController : Controller
     /// <param name="certificationService"></param>
     public CertificationsControlController(
         ICertificationService certificationService,
-        IPingOneManagementService pingOneManagementService)
+        IPingOneManagementService pingOneManagementService,
+        GetChattyDataContext dataContext)
     {
         ArgumentNullException.ThrowIfNull(certificationService);
         ArgumentNullException.ThrowIfNull(pingOneManagementService);
+        ArgumentNullException.ThrowIfNull(dataContext);
 
         _certificationService = certificationService;
         _pingOneManagementService = pingOneManagementService;
+        _dataContext = dataContext;
     }
 
     /// <summary>
@@ -32,7 +37,7 @@ public class CertificationsControlController : Controller
     /// <returns></returns>
     public IActionResult Index()
     {
-        var requests = _certificationService.AccessRequests;
+        var requests = _dataContext.AccessRequests.ToList();
         return View("Index", requests);
     }
 
@@ -42,7 +47,7 @@ public class CertificationsControlController : Controller
     /// <returns></returns>
     public IActionResult History()
     {
-        var requests = _certificationService.AccessRequestsHistory;
+        var requests = _dataContext.AccessRequests.Where(r => r.Status != "Pending").ToList();
         return View("History", requests);
     }
 

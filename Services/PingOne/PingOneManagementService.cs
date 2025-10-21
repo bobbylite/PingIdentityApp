@@ -142,6 +142,46 @@ public class PingOneManagementService : IPingOneManagementService
     }
 
     /// <inheritdoc />
+    public async Task<PingOneUser> GetUserByIdAsync(string userId)
+    {
+        ArgumentNullException.ThrowIfNullOrEmpty(userId);
+
+        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientNames.PingOneApi);
+        var response = await httpClient.GetAsync($"environments/{_optionsMonitor.CurrentValue.EnvironmentId}/users/{userId}");
+
+        response.EnsureSuccessStatusCode();
+
+        var deserializedUserResponse = await response.Content.ReadFromJsonAsync<PingOneUser>();
+        if (deserializedUserResponse is null)
+        {
+            _logger.LogError("Failed to deserialize user response");
+            throw new InvalidOperationException("Failed to deserialize user response");
+        }
+
+        return deserializedUserResponse;
+    }
+
+    /// <inheritdoc />
+    public async Task<Group> GetGroupByIdAsync(string groupId)
+    {
+        ArgumentNullException.ThrowIfNullOrEmpty(groupId);
+
+        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientNames.PingOneApi);
+        var response = await httpClient.GetAsync($"environments/{_optionsMonitor.CurrentValue.EnvironmentId}/groups/{groupId}");
+
+        response.EnsureSuccessStatusCode();
+
+        var deserializedGroupResponse = await response.Content.ReadFromJsonAsync<Group>();
+        if (deserializedGroupResponse is null)
+        {
+            _logger.LogError("Failed to deserialize group response");
+            throw new InvalidOperationException("Failed to deserialize group response");
+        }
+
+        return deserializedGroupResponse;
+    }
+
+    /// <inheritdoc />
     public void Dispose()
     {
     }
