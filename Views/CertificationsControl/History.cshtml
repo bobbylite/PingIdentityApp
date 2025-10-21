@@ -46,8 +46,11 @@
             <thead class="table-primary">
                 <tr>
                     <th>Request ID</th>
-                    <th>User</th>
-                    <th>Group</th>
+                    <th>User ID</th>
+                    <th>Group ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Group Name</th>
                     <th>Status</th>
                     <th>Requested On</th>
                 </tr>
@@ -59,6 +62,9 @@
                         <td>@request.Id</td>
                         <td>@request.UserId</td>
                         <td>@request.GroupId</td>
+                        <td>@request.FirstName</td>
+                        <td>@request.LastName</td>
+                        <td>@request.GroupName</td>
                         <td>@request.Status</td>
                         <td>@request.RequestedAt.ToString("g")</td>
                     </tr>

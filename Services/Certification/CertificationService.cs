@@ -50,13 +50,24 @@ public class CertificationService : ICertificationService
     /// <inheritdoc />
     public async Task CreateAccessRequestAsync(string userId, string groupId)
     {
+        ArgumentNullException.ThrowIfNullOrEmpty(userId);
+        ArgumentNullException.ThrowIfNullOrEmpty(groupId);
+
+        var user = await _pingOneManagementService.GetUserByIdAsync(userId);
+        ArgumentNullException.ThrowIfNull(user);
+        var group = await _pingOneManagementService.GetGroupByIdAsync(groupId);
+        ArgumentNullException.ThrowIfNull(group);
+
         var dbTestAccessRequest = new Data.Entities.AccessRequest
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             GroupId = groupId,
             RequestedAt = DateTime.UtcNow,
-            Status = AccessRequestStatus.Pending
+            Status = AccessRequestStatus.Pending,
+            FirstName = user?.Name?.Given,
+            LastName = user?.Name?.Family,
+            GroupName = group?.Name
         };
 
         await _dataContext.AccessRequests.AddAsync(dbTestAccessRequest);
