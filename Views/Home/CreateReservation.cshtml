@@ -1,0 +1,57 @@
+@{
+    ViewData["Title"] = "Create Reservation";
+}
+
+<div class="d-flex flex-column justify-content-center align-items-center bg-light min-vh-100">
+    <div class="bg-white p-5 rounded-4 shadow-lg w-100" style="max-width: 600px;">
+        <div class="text-center mb-4">
+            <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" style="width: 120px;" />
+            <h2 class="fw-bold mt-3">Create Your Reservation</h2>
+            <p class="text-secondary">Choose your preferred location, device, and pickup time slot.</p>
+        </div>
+
+        <form asp-action="CreateReservation" method="post" id="reservationForm">
+            <div class="mb-4">
+                <label for="Location" class="form-label fw-semibold">Location</label>
+                <select id="Location" name="Location" class="form-select form-select-lg" required>
+                    <option value="" selected disabled>-- Select a Location --</option>
+                    <option value="NYC">New York City</option>
+                    <option value="Brooklyn">Brooklyn</option>
+                    <option value="Queens">Queens</option>
+                    <option value="LongIsland">Long Island</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="Device" class="form-label fw-semibold">Device</label>
+                <select id="Device" name="Device" class="form-select form-select-lg" required>
+                    <option value="" selected disabled>-- Select a Device --</option>
+                    <option value="GetChattyTablet">GetChatty Tablet</option>
+                    <option value="ChatBuddyPhone">ChatBuddy Phone</option>
+                    <option value="SmartDisplay">Smart Display</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="TimeSlot" class="form-label fw-semibold">Pickup Time Slot</label>
+                <select id="TimeSlot" name="TimeSlot" class="form-select form-select-lg" required>
+                    <option value="" selected disabled>-- Select a Time Slot --</option>
+                    <option value="9AM-11AM">9:00 AM - 11:00 AM</option>
+                    <option value="11AM-1PM">11:00 AM - 1:00 PM</option>
+                    <option value="1PM-3PM">1:00 PM - 3:00 PM</option>
+                    <option value="3PM-5PM">3:00 PM - 5:00 PM</option>
+                </select>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-danger btn-lg rounded-pill fw-semibold">
+                    <i class="bi bi-credit-card me-2"></i> Continue with Payment
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <footer class="mt-5 text-center text-muted small">
+        <p class="mb-0">&copy; @DateTime.Now.Year GetChatty Ltd. All rights reserved.</p>
+    </footer>
+</div>

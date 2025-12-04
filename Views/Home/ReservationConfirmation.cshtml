@@ -1,0 +1,47 @@
+@model PingIdentityApp.Models.ReservationPayment
+
+@{
+    ViewData["Title"] = "Reservation Confirmation";
+    var confirmationCode = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+}
+
+<div class="d-flex flex-column justify-content-center align-items-center bg-white min-vh-100">
+    <div class="text-center p-5 rounded-4 bg-white shadow-lg" style="max-width: 600px;">
+        <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" class="mb-4" style="width: 140px;" />
+
+        <h1 class="display-6 fw-bold text-success mb-3">
+            <i class="bi bi-check-circle-fill me-2"></i> Reservation Confirmed
+        </h1>
+
+        <p class="lead text-secondary mb-4">
+            Thank you for completing your reservation! Please review your reservation details below.
+        </p>
+
+        <div class="text-start bg-light border rounded-4 p-4 shadow-sm mb-4">
+            <p class="mb-2"><strong>Location:</strong> @Model.Location</p>
+            <p class="mb-2"><strong>Device:</strong> @Model.Device</p>
+            <p class="mb-2"><strong>Pickup Time:</strong> @Model.TimeSlot</p>
+            <p class="mb-2"><strong>Amount Paid:</strong> $@Model.Amount</p>
+            <p class="mb-0 text-muted small">Reservation ID: <code>@Model.ReservationId</code></p>
+        </div>
+
+        <div class="my-4">
+            <h5 class="fw-bold text-dark mb-2">Your Kiosk Confirmation Code</h5>
+            <div class="bg-danger text-white rounded-3 p-3 d-inline-block shadow-sm fs-3 fw-bold" 
+                 style="letter-spacing: 3px; font-family: monospace;">
+                @confirmationCode
+            </div>
+            <p class="text-secondary mt-3 small">
+                Enter this code at the kiosk to verify your reservation and pick up your device.
+            </p>
+        </div>
+
+        <a href="/Home/Index" class="btn btn-danger px-5 py-3 rounded-pill fw-semibold mt-3">
+            <i class="bi bi-house-door-fill me-2"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <footer class="mt-5 text-center text-muted small">
+        <p class="mb-0">&copy; @DateTime.Now.Year GetChatty Ltd. All rights reserved.</p>
+    </footer>
+</div>

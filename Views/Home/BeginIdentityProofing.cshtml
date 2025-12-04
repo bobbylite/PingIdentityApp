@@ -1,0 +1,111 @@
+@model PingIdentityApp.Models.VerifyTransactionCreatedResponse
+
+@inject PingIdentityApp.Services.PingOne.IPingOneManagementService PingOneManagementService
+
+@{
+    ViewData["Title"] = "GetChatty Identity Proofing";
+}
+
+<div class="d-flex flex-column justify-content-center align-items-center bg-white min-vh-100">
+    <div class="text-center p-5 rounded-4 bg-white shadow-lg" style="max-width: 500px;">
+        <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" class="mb-4" style="width: 140px;" />
+
+        <h1 class="display-5 fw-bold text-dark mb-3">Identity Proofing Portal</h1>
+        <p class="lead text-secondary mb-4">
+            You are about to begin your <strong>secure identity proofing process</strong> with PingOne. 
+            Please have a <strong>government-issued ID</strong> ready for the next steps.
+        </p>
+
+        <button id="beginProofingBtn" class="btn btn-lg btn-danger px-5 py-3 rounded-pill fw-semibold w-100">
+            <i class="bi bi-person-check-fill me-2"></i> Begin Identity Proofing
+        </button>
+
+        @if (!string.IsNullOrEmpty(Model.QrUrl))
+        {
+            <div id="qrCodeSection" style="visibility: hidden;" class="text-center mt-4">
+                <h5 class="fw-bold text-dark mb-3">Scan to Begin</h5>
+                <div class="bg-white border border-3 border-danger-subtle rounded-4 p-4 shadow-sm d-inline-block">
+                    <img src="@Model.QrUrl" alt="Identity Proofing QR Code" 
+                        class="img-fluid rounded-3" 
+                        style="width: 220px; height: 220px;" />
+                </div>
+                <p class="text-secondary mt-3 mb-0">
+                    Scan this QR code on your phone to continue verification.
+                </p>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model?.WebVerificationCode))
+        {
+            <div class="mt-4">
+                <h6 class="text-secondary mb-1">Web Verification Code</h6>
+                <div class="bg-light border border-2 border-danger rounded-3 p-3 d-inline-block shadow-sm" 
+                     style="font-family: monospace; font-size: 1.1rem;">
+                    @Model?.WebVerificationCode
+                </div>
+            </div>
+        }
+
+        <div class="mt-4">
+            <h6 class="text-secondary mb-1">Transaction ID</h6>
+            <div class="bg-light border border-2 border-secondary rounded-3 p-3 d-inline-block shadow-sm" 
+                 style="font-family: monospace; font-size: 0.9rem;">
+                @Model?.Id
+            </div>
+        </div>
+
+        <div id="statusSection" class="mt-4" style="display:none;">
+            <div id="spinner" class="spinner-border text-danger me-2" role="status"></div>
+            <span id="statusText">Checking transaction status...</span>
+        </div>
+
+        <div id="continueSection" class="mt-4" style="display:none;">
+            <button id="continueBtn" class="btn btn-success btn-lg rounded-pill px-4 fw-semibold">
+                <i class="bi bi-credit-card me-2"></i> Continue to Reservation
+            </button>
+        </div>
+
+        <p class="mt-4 text-muted small">
+            Once you begin, you will be redirected to the PingOne identity verification portal.
+        </p>
+    </div>
+
+    <footer class="mt-5 text-center text-muted small">
+        <p class="mb-0">&copy; @DateTime.Now.Year GetChatty Ltd. All rights reserved.</p>
+    </footer>
+</div>
+
+@section Scripts {
+    <script>
+        const transactionId = '@Model?.Id';
+        const btn = document.getElementById("beginProofingBtn");
+        const statusSection = document.getElementById("statusSection");
+        const statusText = document.getElementById("statusText");
+        const continueSection = document.getElementById("continueSection");
+
+        btn.addEventListener("click", () => {
+            document.getElementById("qrCodeSection").style.visibility = 'visible';
+            statusSection.style.display = 'block';
+            
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/Home/GetTransactionStatus?transactionId=${transactionId}`);
+                    const data = await response.json();
+
+                    if (data.transactionStatus?.status === 'SUCCESS') {
+                        clearInterval(interval);
+                        statusText.textContent = "Congrats on identity proofing! You’re verified 🎉";
+                        document.getElementById("spinner").style.display = 'none';
+                        continueSection.style.display = 'block';
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }, 10000);
+        });
+
+        document.getElementById("continueBtn").addEventListener("click", () => {
+            window.location.href = "/Home/CreateReservation"; 
+        });
+    </script>
+}

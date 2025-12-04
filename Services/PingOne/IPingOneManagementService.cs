@@ -54,4 +54,21 @@ public interface IPingOneManagementService : IDisposable
     /// <param name="groupId"></param>
     /// <returns></returns>
     Task DeprovisionGroupMembershipAsync(string userId, string groupId);
+
+    /// <summary>
+    /// Creates a Verify transaction for the specified user.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="dateOfBirth"></param>
+    /// <param name="address"></param>
+    /// <returns></returns>
+    Task<VerifyTransactionCreatedResponse> CreateVerifyTransactionAsync(string userId, string dateOfBirth, string address);
+
+    /// <summary>
+    /// Gets a Verify transaction by its unique identifier.
+    /// </summary>
+    /// <param name="transactionId"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    Task<VerifyTransactionResponse> GetVerifyTransactionAsync(string userId, string transactionId);
 }

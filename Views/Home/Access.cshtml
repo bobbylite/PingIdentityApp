@@ -114,7 +114,7 @@
                                         <td>@group.Id</td>
                                         <td>@group.Description</td>
                                         <td class="text-center">
-                                            @if(DataContext.AccessRequests.Any(r => r.GroupId == group.Id))
+                                            @if(DataContext.AccessRequests.Any(r => r.GroupId == group.Id && r.Status == "Pending"))
                                             {
                                                 <form id="@group.Id" method="post" action="/account/request-access" class="d-inline" data-tour-id="@group.Id">
                                                     @Html.AntiForgeryToken()

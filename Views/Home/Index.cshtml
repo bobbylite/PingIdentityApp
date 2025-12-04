@@ -2,13 +2,22 @@
     ViewData["Title"] = "GetChatty Self Service Portal";
 }
 
-<div class="d-flex flex-column justify-content-center align-items-center bg-white">
-    <div class="text-center p-5 rounded-4 bg-white">
+<div class="min-vh-100 d-flex flex-column justify-content-center align-items-center bg-light position-relative overflow-hidden">
+    <!-- Soft background gradient -->
+    <div class="position-absolute top-0 start-0 w-100 h-100 bg-gradient" 
+         style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%); z-index: 0;"></div>
+
+    <!-- Accent circles -->
+    <div class="position-absolute rounded-circle bg-danger-subtle opacity-25" style="width: 300px; height: 300px; top: -100px; right: -100px;"></div>
+    <div class="position-absolute rounded-circle bg-primary-subtle opacity-25" style="width: 200px; height: 200px; bottom: -50px; left: -50px;"></div>
+
+    <!-- Central card -->
+    <div class="card shadow-lg border-0 rounded-4 text-center bg-white bg-opacity-75 backdrop-blur p-5 position-relative" style="z-index: 1; max-width: 480px;">
         <img src="/images/GetChattyLogo.png" alt="GetChatty Logo" class="mb-4" style="width: 140px;" />
 
         <h1 class="display-5 fw-bold text-dark mb-3">GetChatty Portal</h1>
         <p class="lead text-secondary mb-4">
-            Manage your account, access tools, and connect securely with <strong>GetChatty Ltd.</strong>
+            Manage your reservations, and connect securely with <strong>PingOne</strong>
         </p>
 
         <a class="btn btn-lg btn-danger px-5 py-3 rounded-pill fw-semibold"
@@ -17,11 +26,12 @@
         </a>
 
         <p class="mt-4 text-muted small">
-            Powered by PingIdentity
+            Powered by <strong>PingIdentity</strong>
         </p>
     </div>
 
-    <footer class="mt-5 text-center text-muted small">
+    <!-- Footer -->
+    <footer class="mt-5 text-center text-muted small position-relative" style="z-index: 1;">
         <p class="mb-0">&copy; @DateTime.Now.Year GetChatty Ltd. All rights reserved.</p>
     </footer>
 </div>

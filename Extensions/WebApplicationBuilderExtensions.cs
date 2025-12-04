@@ -150,6 +150,16 @@ public static class WebApplicationBuilderExtensions
                 {
                     Console.WriteLine($"OIDC Token validated for {ctx.Principal?.Identity?.Name}");
                     return Task.CompletedTask;
+                },
+                OnRemoteFailure = context =>
+                {
+                    if (context.Failure is OpenIdConnectProtocolException ex && 
+                        ex.Message.Contains("access_denied"))
+                    {
+                        context.Response.Redirect("/AccessDenied");
+                        context.HandleResponse(); 
+                    }
+                    return Task.CompletedTask;
                 }
             };
         });
